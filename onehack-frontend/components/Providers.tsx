@@ -4,6 +4,7 @@ import { createNetworkConfig, SuiClientProvider, WalletProvider } from "@mysten/
 import { getFullnodeUrl } from "@mysten/sui/client"; // UPDATED IMPORT
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@mysten/dapp-kit/dist/index.css";
+import ToastProvider from "./ToastProvider";
 
 const { networkConfig } = createNetworkConfig({
 	testnet: {
@@ -23,7 +24,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 		<QueryClientProvider client={queryClient}>
 			<SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
 				<WalletProvider>
-					{children}
+					<ToastProvider>
+						{children}
+					</ToastProvider>
 				</WalletProvider>
 			</SuiClientProvider>
 		</QueryClientProvider>

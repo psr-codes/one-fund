@@ -7,7 +7,7 @@ import  NavBar from "@/components/Navbar"; // Import the new component
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "OneHack CrowdFund",
+  title: "OneFund - Crowdfunding on OneChain",
   description: "90/10 Split Crowdfunding on OneChain",
 };
 
@@ -18,11 +18,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-900 text-white`}>
+      {/* <body className={`${inter.className} bg-gray-900 text-white `}> */}
+      <body className={`${inter.className} bg-gradient-to-b from-green-900/20 to-gray-950 text-white `}>
         <Providers>
           {/* We use the extracted NavBar here */}
           <NavBar />
-          <main className="max-w-6xl mx-auto p-4">
+          <main className="mx-auto p-4">
             {children}
           </main>
         </Providers>

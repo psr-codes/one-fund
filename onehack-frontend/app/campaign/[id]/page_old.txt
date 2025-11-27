@@ -7,17 +7,16 @@ import {
 } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
 import { PACKAGE_ID, MODULE, COIN_TYPE } from "@/config";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useToast } from "@/components/ToastProvider";
 
 export default function CampaignDetails() {
-  const { id: paramId } = useParams(); // Get raw param from URL
-  
-  // Internal state to hold the REAL object ID (in case URL is a digest)
-  const [campaignId, setCampaignId] = useState<string>(paramId as string);
 
+
+  const { id } = useParams();
+
+  
   const client = useSuiClient();
   const account = useCurrentAccount();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
@@ -30,66 +29,32 @@ export default function CampaignDetails() {
     return `${hash.slice(0, 6)}...${hash.slice(-4)}`;
   };
 
-  const { showToast } = useToast();
+  const { data: objectData, refetch } = useSuiClientQuery("getObject", {
+    id: id as string,
+    options: { showContent: true },
+  });
 
-  // 1. Fetch ALL Events first (so we can find the ID if needed)
   const { data: eventsData } = useSuiClientQuery("queryEvents", {
     query: { MoveModule: { package: PACKAGE_ID, module: MODULE } },
     limit: 100,
     order: "descending",
   });
 
+  const creationEvent = eventsData?.data.find(
+    (e: any) => e.type.includes("::CampaignCreated") && (e.parsedJson as any)?.campaign_id === id
+  );
+
   console.log("Events Data:", eventsData);
-  // 2. Logic to Find Creation Event & Update ID
-  const creationEvent = useMemo(() => {
-    if (!eventsData) return null;
-
-    return eventsData.data.find((e: any) => {
-        const isCreation = e.type.includes("::CampaignCreated");
-        if (!isCreation) return false;
-
-        // Check if URL param matches the Object ID inside the event
-        const matchesObjectId = (e.parsedJson as any)?.campaign_id === paramId;
-
-        // Check if URL param matches the Transaction Digest of the event
-        const matchesTxDigest = e.id?.txDigest === paramId;
-
-        return matchesObjectId || matchesTxDigest;
-    });
-  }, [eventsData, paramId]);
-
-  // 3. Effect: If we found the event via Digest, update 'campaignId' to the real Object ID
-  useEffect(() => {
-    if (creationEvent) {
-        const realId = (creationEvent.parsedJson as any)?.campaign_id;
-        if (realId && realId !== campaignId) {
-            console.log("Found Real Campaign ID from Digest:", realId);
-            setCampaignId(realId);
-        }
-    }
-  }, [creationEvent, campaignId]);
-
-
-  // 4. Fetch Object Data using the resolved 'campaignId'
-  const { data: objectData, refetch } = useSuiClientQuery("getObject", {
-    id: campaignId, 
-    options: { showContent: true },
-  }, {
-    enabled: !!campaignId // Only fetch if we have an ID
-  });
-
-
   const createdDate = creationEvent
     ? new Date(Number(creationEvent.timestampMs)).toLocaleDateString()
-    : "Loading...";
+    : "Just now";
 
   const { topDonors, recentDonations } = useMemo(() => {
     if (!eventsData) return { topDonors: [], recentDonations: [] };
 
-    // Filter events using the resolved campaignId
     const donations = eventsData.data.filter(
       (e: any) =>
-        (e.parsedJson as any)?.campaign_id === campaignId &&
+        (e.parsedJson as any)?.campaign_id === id &&
         e.type.includes("::DonationReceived")
     );
 
@@ -104,7 +69,7 @@ export default function CampaignDetails() {
       .sort((a, b) => b.total - a.total);
 
     return { topDonors: sortedTopDonors, recentDonations: donations };
-  }, [eventsData, campaignId]);
+  }, [eventsData, id]);
 
   const handleShare = () => {
     const url = window.location.href;
@@ -115,14 +80,8 @@ export default function CampaignDetails() {
   };
 
   const donate = async () => {
-    if (!account) {
-      showToast("Please connect wallet first");
-      return;
-    }
-    if (!amount || parseFloat(amount) <= 0) {
-      showToast("Please enter a valid amount");
-      return;
-    }
+    if (!account) return alert("Please connect wallet first");
+    if (!amount || parseFloat(amount) <= 0) return alert("Please enter a valid amount");
 
     setLoading(true);
 
@@ -168,43 +127,37 @@ export default function CampaignDetails() {
       tx.moveCall({
         target: `${PACKAGE_ID}::${MODULE}::donate`,
         typeArguments: [COIN_TYPE],
-        arguments: [tx.object(campaignId), coin], // Use resolved ID
+        arguments: [tx.object(id as string), coin],
       });
 
       signAndExecute(
         { transaction: tx },
         {
           onSuccess: () => {
-            showToast("Donation Successful!");
+            alert("Donation Successful!");
             setLoading(false);
             setAmount("");
             setTimeout(() => refetch(), 2000);
           },
           onError: (e) => {
             console.error(e);
-            showToast("Tx Failed: " + e.message);
+            alert("Tx Failed: " + e.message);
             setLoading(false);
           },
         }
       );
     } catch (e: any) {
-      console.error(e);
-      showToast(e.message || "Transaction failed");
+      alert(e.message);
       setLoading(false);
     }
   };
 
   if (!objectData?.data)
     return (
-        <div className="flex flex-col h-screen items-center justify-center space-y-4 bg-gray-950">
-            <div className="flex space-x-2">
-                <div className="w-4 h-4 bg-green-500 rounded-full animate-bounce"></div>
-                <div className="w-4 h-4 bg-green-500 rounded-full animate-bounce delay-75"></div>
-                <div className="w-4 h-4 bg-green-500 rounded-full animate-bounce delay-150"></div>
-            </div>
-            {!creationEvent && (
-                <p className="text-gray-500 text-sm">Searching for Campaign...</p>
-            )}
+        <div className="flex h-screen items-center justify-center space-x-2 bg-gray-950">
+            <div className="w-4 h-4 bg-green-500 rounded-full animate-bounce"></div>
+            <div className="w-4 h-4 bg-green-500 rounded-full animate-bounce delay-75"></div>
+            <div className="w-4 h-4 bg-green-500 rounded-full animate-bounce delay-150"></div>
         </div>
     );
 
@@ -224,6 +177,7 @@ export default function CampaignDetails() {
           <div className="bg-gray-900 p-8 rounded-3xl border border-gray-800 shadow-xl relative overflow-hidden">
              <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/5 rounded-full blur-3xl -z-10"></div>
 
+            {/* Title (Cleaned up) */}
             <div className="mb-6">
                <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">{fields.title}</h1>
             </div>
@@ -287,8 +241,9 @@ export default function CampaignDetails() {
         {/* --- RIGHT COLUMN (4 cols) - Sticky Sidebar --- */}
         <div className="lg:col-span-4 space-y-6">
             
-            {/* 1. TOP ACTION BUTTONS */}
+            {/* 1. TOP ACTION BUTTONS (New) */}
             <div className="grid grid-cols-2 gap-4">
+                {/* Share Button */}
                 <button 
                     onClick={handleShare}
                     className="cursor-pointer flex items-center justify-center gap-2 py-3 px-4 bg-gray-900 hover:bg-gray-800 border border-gray-800 rounded-xl text-gray-300 hover:text-white transition-all group"
@@ -297,17 +252,19 @@ export default function CampaignDetails() {
                     <span className="font-bold text-sm">{copied ? "Copied!" : "Share"}</span>
                 </button>
 
+                {/* Verified Badge */}
                 <div className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-900 border border-green-900/30 rounded-xl cursor-default">
                     <span className="text-lg">🛡️</span>
                     <span className="font-bold text-sm text-green-400">Verified</span>
                 </div>
             </div>
 
-            {/* 2. DONATION CARD */}
+            {/* 2. DONATION CARD (Updated Typography) */}
             <div className="bg-gray-900 p-6 rounded-3xl border border-gray-800 shadow-xl sticky top-28">
                 <div className="mb-8 text-center pt-2">
                     <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mb-2">Raised so far</p>
                     
+                    {/* Fixed Alignment */}
                     <div className="flex justify-center items-center gap-1">
                         <span className="text-6xl font-black text-white tracking-tighter">
                             {raisedAmount}
@@ -341,10 +298,10 @@ export default function CampaignDetails() {
                 <button
                     onClick={donate}
                     disabled={loading}
-                    className={`cursor-pointer w-full py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg mb-4 ${
+                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg mb-4 ${
                         loading
                         ? "bg-gray-800 text-gray-500 cursor-not-allowed"
-                        : "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-green-900/30"
+                        : "bg-green-600 hover:bg-green-500 text-white shadow-green-900/30"
                     }`}
                 >
                     {loading ? (

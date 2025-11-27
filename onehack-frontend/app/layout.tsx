@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "OneFund - Crowdfunding on OneChain",
-  description: "90/10 Split Crowdfunding on OneChain",
+  description: "Crowdfunding on OneChain",
 };
 
 export default function RootLayout({

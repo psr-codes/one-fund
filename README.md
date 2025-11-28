@@ -1,7 +1,7 @@
 # 🚀 OneFund: Decentralized Crowdfunding on OneChain
 
-![OneFund Banner](https://via.placeholder.com/1200x400.png?text=OneFund+Banner+Placeholder)
-*(Replace above link with your project banner or logo)*
+![OneFund Banner](https://via.placeholder.com/1200x400.png?text=OneFund+Project+Banner)
+*(Replace above link with your actual project banner)*
 
 **OneFund** is a transparent, non-custodial crowdfunding platform built on the **OneChain** Layer 1 blockchain. Unlike traditional platforms that hold funds in escrow, OneFund utilizes a **"pass-through" smart contract model** that streams donations instantly to creators while ensuring verifiable on-chain history.
 
@@ -76,3 +76,46 @@ public entry fun donate<T>(campaign: &mut Campaign, mut payment: Coin<T>, ctx: &
     campaign.raised = campaign.raised + amount;
     event::emit(DonationReceived { ... });
 }
+```
+## 📸 Screenshots
+
+### 1. Explore Dashboard
+Discover trending campaigns with real-time progress bars.
+
+### 2. Campaign Creation
+Simple, permissionless creation flow integrated with OneWallet.
+
+### 3. Campaign Details & Donation
+View top donors, recent transactions, and donate securely with a single click.
+
+---
+
+## 🚀 Getting Started Locally
+
+To run **OneFund** on your local environment:
+
+```bash
+# Clone the repository
+git clone https://github.com/psr-codes/onehack-frontend.git
+cd onehack-frontend
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+## 👨‍💻 About The Developer
+
+**Prakash Rawat — Hackathon Builder & Web3 Developer**
+
+I am a passionate builder focused on creating intuitive and impactful user experiences powered by decentralized infrastructure.  
+OneFund reflects my belief in how blockchain can modernize crowdfunding and improve transparent public-goods funding.
+
+### 🔗 Connect with Me
+- **GitHub:** https://github.com/psr-codes  
+- **LinkedIn:** https://linkedin.com/in/prakash-rawat-dev  
+- **Email:** prakash.rawat.dev@gmail.com
+
+

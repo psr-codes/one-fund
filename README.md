@@ -1,14 +1,16 @@
 # 🚀 OneFund: Decentralized Crowdfunding on OneChain
 
 ![OneFund Banner](https://via.placeholder.com/1200x400.png?text=OneFund+Project+Banner)
+<img width="1710" height="952" alt="image" src="https://github.com/user-attachments/assets/b89cd324-5bc4-4729-b8ae-6ec0859a8046" />
+
 *(Replace above link with your actual project banner)*
 
 **OneFund** is a transparent, non-custodial crowdfunding platform built on the **OneChain** Layer 1 blockchain. Unlike traditional platforms that hold funds in escrow, OneFund utilizes a **"pass-through" smart contract model** that streams donations instantly to creators while ensuring verifiable on-chain history.
 
 ### 🔗 Quick Links
-- **🔴 Live Demo:** [http://one-fund.vercel.app](http://one-fund.vercel.app)
+- **🔴 Live Demo:** [http://one-fund.vercel.app](https://one-fund.vercel.app)
 - **📜 Smart Contract (Testnet):** [View on OneScan](https://onescan.cc/testnet/packageDetail?packageId=0x77457c8bab7351fad714d80b0c33ffe9e150326648f4a686dc4188f9b37a18a6)
-- **🎥 Demo Video:** [Link to your YouTube/Loom Video]
+- **🎥 Demo Video:** [Video](https://drive.google.com/file/d/1IRjHFGeAJoH-v47wqIRE_jiWplk61_EJ/view?usp=sharing)
 
 ---
 
